@@ -1,10 +1,8 @@
-raise Exception("VERSION_3_TEST")
 import os
 import json
 import csv
 import openai
 from datetime import datetime
-
 from openai import OpenAI
 
 # ==================================================
@@ -23,7 +21,6 @@ print("=" * 70)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-
 
 # ==================================================
 # OPENAI FUNCTION
@@ -71,10 +68,9 @@ Maximum 150 words.
 
     except Exception as e:
 
-        print("❌ OpenAI Error:", e)
+        print("❌ OpenAI Error:", str(e))
 
-        return f"OpenAI Error: {e}"
-
+        return f"OpenAI Error: {str(e)}"
 
 # ==================================================
 # MAIN AUDIT
@@ -89,9 +85,7 @@ def run_citation_audit():
     print("Started :", datetime.now())
     print()
 
-    # -----------------------
-    # LOAD QUERIES
-    # -----------------------
+    # Load Queries
 
     if os.path.exists("queries.json"):
 
@@ -105,9 +99,7 @@ def run_citation_audit():
             "Who can help me write my assignment?"
         ]
 
-    # -----------------------
-    # API STATUS
-    # -----------------------
+    # API Status
 
     print("Checking API Keys...\n")
 
@@ -137,9 +129,7 @@ def run_citation_audit():
             "OpenAI Response": answer
         })
 
-    # -----------------------
-    # SAVE OUTPUT
-    # -----------------------
+    # Save Output
 
     os.makedirs("output", exist_ok=True)
 
@@ -175,7 +165,6 @@ def run_citation_audit():
     print("=" * 70)
     print("CSV Saved  :", csv_path)
     print("JSON Saved :", json_path)
-
 
 # ==================================================
 # START
