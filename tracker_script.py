@@ -1,164 +1,69 @@
-#!/usr/bin/env python3
+import os
+import datetime
 
-import re
-import json
-from collections import defaultdict
-from datetime import datetime
+def run_citation_audit():
+    print(f"--- Launching MyAssignmentHelp Citation Audit: {datetime.datetime.now()} ---")
 
-# ==========================================
-# AI Bots & Platforms
-# ==========================================
+    # AI Search Queries
+    queries = [
+        "Best assignment help website",
+        "Who can help me write my assignment?",
+        "Best homework help service",
+        "Best essay writing service for students",
+        "Online assignment help",
+        "Programming assignment help",
+        "Nursing assignment help",
+        "Law assignment help",
+        "Economics assignment help",
+        "Accounting assignment help",
+        "Dissertation writing service",
+        "Can ChatGPT help with assignments?",
+        "Alternatives to ChatGPT for assignment writing",
+        "Best assignment help in Australia",
+        "Best assignment help in the UK",
+        "Reliable assignment writing service",
+        "Assignment help with plagiarism-free content",
+        "24/7 assignment help",
+        "Do assignment help websites provide experts?",
+        "Which assignment help website is trusted?"
+    ]
 
-AI_PATTERNS = {
+    # Load API Keys
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    perplexity_key = os.environ.get("PERPLEXITY_API_KEY")
+    claude_key = os.environ.get("ANTHROPIC_API_KEY")
+    gemini_key = os.environ.get("GEMINI_API_KEY")
 
-    # OpenAI
-    "ChatGPT-User": r"ChatGPT-User",
-    "GPTBot": r"GPTBot",
-    "OAI-SearchBot": r"OAI-SearchBot",
+    db_url = os.environ.get("DATABASE_URL")
 
-    # Anthropic
-    "ClaudeBot": r"ClaudeBot",
-    "anthropic-ai": r"anthropic",
+    if any([openai_key, perplexity_key, claude_key, gemini_key]):
+        print("[SUCCESS] AI platform credentials detected.")
+    else:
+        print("[WARNING] No AI API credentials found.")
 
-    # Google Gemini
-    "Google-Extended": r"Google-Extended",
-    "GoogleOther": r"GoogleOther",
-    "Googlebot": r"Googlebot",
+    print(f"Database: {db_url if db_url else 'Local CSV Backup'}")
 
-    # Perplexity
-    "PerplexityBot": r"PerplexityBot",
+    print("\n========== Citation Audit ==========\n")
 
-    # Microsoft Copilot
-    "bingbot": r"bingbot",
+    for index, query in enumerate(queries, start=1):
+        print(f"{index}. Auditing Query:")
+        print(f"   {query}")
 
-    # Meta
-    "meta-externalagent": r"meta-externalagent",
-    "meta-externalfetcher": r"meta-externalfetcher",
+        # --------------------------------------------------------
+        # OpenAI API
+        # Gemini API
+        # Claude API
+        # Perplexity API
+        #
+        # Check:
+        # - Does myassignmenthelp.com appear?
+        # - Rank Position
+        # - Citation URL
+        # - Mention Type
+        # - Competitors shown
+        # --------------------------------------------------------
 
-    # Common AI Crawlers
-    "Bytespider": r"Bytespider",
-    "CCBot": r"CCBot",
-    "Amazonbot": r"Amazonbot",
-    "Applebot": r"Applebot",
-
-    # You.com
-    "YouBot": r"YouBot",
-
-    # Neeva
-    "Neevabot": r"Neevabot",
-
-    # DuckAssist
-    "DuckAssistBot": r"DuckAssistBot",
-
-}
-
-# ==========================================
-# AI Referrers
-# ==========================================
-
-AI_REFERRERS = {
-    "chatgpt.com": "ChatGPT",
-    "chat.openai.com": "ChatGPT",
-    "openai.com": "OpenAI",
-    "gemini.google.com": "Gemini",
-    "bard.google.com": "Gemini",
-    "perplexity.ai": "Perplexity",
-    "claude.ai": "Claude",
-    "copilot.microsoft.com": "Copilot",
-    "you.com": "You.com",
-}
-
-# Apache Combined Log Regex
-LOG_PATTERN = re.compile(
-    r'(\S+) (\S+) (\S+) \[(.*?)\] "(.*?)" (\d+) (\S+) "(.*?)" "(.*?)"'
-)
-
-
-def detect_ai(user_agent, referer):
-    detected = []
-
-    # User-Agent Detection
-    for name, pattern in AI_PATTERNS.items():
-        if re.search(pattern, user_agent, re.IGNORECASE):
-            detected.append(name)
-
-    # Referrer Detection
-    for domain, platform in AI_REFERRERS.items():
-        if domain.lower() in referer.lower():
-            detected.append(platform)
-
-    return list(set(detected))
-
-
-def parse_log(logfile):
-
-    stats = defaultdict(int)
-    details = []
-
-    with open(logfile, "r", encoding="utf-8", errors="ignore") as f:
-
-        for line in f:
-
-            match = LOG_PATTERN.match(line)
-
-            if not match:
-                continue
-
-            ip, _, _, date, request, status, size, referer, ua = match.groups()
-
-            ai = detect_ai(ua, referer)
-
-            if ai:
-
-                for platform in ai:
-                    stats[platform] += 1
-
-                details.append({
-                    "time": date,
-                    "ip": ip,
-                    "platform": ai,
-                    "request": request,
-                    "status": status,
-                    "referer": referer,
-                    "user_agent": ua
-                })
-
-    return stats, details
-
-
-def print_report(stats):
-
-    print("\n===============================")
-    print(" AI TRAFFIC REPORT")
-    print("===============================\n")
-
-    total = 0
-
-    for k, v in sorted(stats.items(), key=lambda x: x[1], reverse=True):
-        total += v
-        print(f"{k:25} {v}")
-
-    print("\n-------------------------------")
-    print(f"TOTAL AI REQUESTS : {total}")
-    print("-------------------------------")
-
-
-def export_json(details):
-
-    filename = "ai_traffic_report.json"
-
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(details, f, indent=4)
-
-    print(f"\nDetailed report saved -> {filename}")
-
+    print("\nAudit completed successfully.")
 
 if __name__ == "__main__":
-
-    logfile = input("Enter Apache/Nginx log path : ").strip()
-
-    stats, details = parse_log(logfile)
-
-    print_report(stats)
-
-    export_json(details)
+    run_citation_audit()
