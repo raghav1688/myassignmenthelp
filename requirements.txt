@@ -1,5 +1,5 @@
-openai
-anthropic
+openai>=1.50.0
+google-genai
 requests
+pandas
 python-dotenv
-psycopg2-binary
