@@ -1,3 +1,4 @@
+```yaml
 name: LLM Citation Tracking Loop
 
 on:
@@ -31,3 +32,11 @@ jobs:
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python tracker_script.py
+
+      - name: Upload Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-citation-report
+          path: output/
+          if-no-files-found: warn
+```
