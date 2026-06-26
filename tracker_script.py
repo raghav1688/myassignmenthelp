@@ -1,69 +1,116 @@
 import os
-import datetime
+import json
+import csv
+from datetime import datetime
+
+from openai import OpenAI
+
+# ===========================
+# API Configuration
+# ===========================
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+client = None
+
+if OPENAI_API_KEY:
+    client = OpenAI(api_key=OPENAI_API_KEY)
+
+
+def ask_openai(query):
+    """Send a query to OpenAI and return the response."""
+
+    if client is None:
+        return "OpenAI API key not found."
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": query
+                }
+            ],
+            temperature=0
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        return f"OpenAI Error: {e}"
+
 
 def run_citation_audit():
-    print(f"--- Launching MyAssignmentHelp Citation Audit: {datetime.datetime.now()} ---")
 
-    # AI Search Queries
-    queries = [
-        "Best assignment help website",
-        "Who can help me write my assignment?",
-        "Best homework help service",
-        "Best essay writing service for students",
-        "Online assignment help",
-        "Programming assignment help",
-        "Nursing assignment help",
-        "Law assignment help",
-        "Economics assignment help",
-        "Accounting assignment help",
-        "Dissertation writing service",
-        "Can ChatGPT help with assignments?",
-        "Alternatives to ChatGPT for assignment writing",
-        "Best assignment help in Australia",
-        "Best assignment help in the UK",
-        "Reliable assignment writing service",
-        "Assignment help with plagiarism-free content",
-        "24/7 assignment help",
-        "Do assignment help websites provide experts?",
-        "Which assignment help website is trusted?"
-    ]
+    print("=" * 60)
+    print("MyAssignmentHelp AI Citation Tracker")
+    print("=" * 60)
+    print(f"Started : {datetime.now()}")
+    print()
 
-    # Load API Keys
-    openai_key = os.environ.get("OPENAI_API_KEY")
-    perplexity_key = os.environ.get("PERPLEXITY_API_KEY")
-    claude_key = os.environ.get("ANTHROPIC_API_KEY")
-    gemini_key = os.environ.get("GEMINI_API_KEY")
+    # -------------------------
+    # Load Queries
+    # -------------------------
 
-    db_url = os.environ.get("DATABASE_URL")
-
-    if any([openai_key, perplexity_key, claude_key, gemini_key]):
-        print("[SUCCESS] AI platform credentials detected.")
+    if os.path.exists("queries.json"):
+        with open("queries.json", "r", encoding="utf-8") as f:
+            queries = json.load(f)
     else:
-        print("[WARNING] No AI API credentials found.")
+        queries = [
+            "Best assignment help website",
+            "Who can help me write my assignment?"
+        ]
 
-    print(f"Database: {db_url if db_url else 'Local CSV Backup'}")
+    # -------------------------
+    # API Status
+    # -------------------------
 
-    print("\n========== Citation Audit ==========\n")
+    print("Checking API Keys...")
+
+    print(f"OpenAI      : {'✅ Found' if os.getenv('OPENAI_API_KEY') else '❌ Missing'}")
+    print(f"Gemini      : {'✅ Found' if os.getenv('GEMINI_API_KEY') else '❌ Missing'}")
+    print(f"Claude      : {'✅ Found' if os.getenv('ANTHROPIC_API_KEY') else '❌ Missing'}")
+    print(f"Perplexity  : {'✅ Found' if os.getenv('PERPLEXITY_API_KEY') else '❌ Missing'}")
+
+    print("\nRunning OpenAI Tests...\n")
+
+    results = []
 
     for index, query in enumerate(queries, start=1):
-        print(f"{index}. Auditing Query:")
-        print(f"   {query}")
 
-        # --------------------------------------------------------
-        # OpenAI API
-        # Gemini API
-        # Claude API
-        # Perplexity API
-        #
-        # Check:
-        # - Does myassignmenthelp.com appear?
-        # - Rank Position
-        # - Citation URL
-        # - Mention Type
-        # - Competitors shown
-        # --------------------------------------------------------
+        print(f"[{index}] {query}")
 
-    print("\nAudit completed successfully.")
+        answer = ask_openai(query)
+
+        print(answer[:300])
+        print("-" * 80)
+
+        results.append({
+            "Query": query,
+            "OpenAI Response": answer
+        })
+
+    # -------------------------
+    # Save CSV
+    # -------------------------
+
+    os.makedirs("output", exist_ok=True)
+
+    with open("output/audit.csv", "w", newline="", encoding="utf-8") as csvfile:
+
+        writer = csv.DictWriter(
+            csvfile,
+            fieldnames=["Query", "OpenAI Response"]
+        )
+
+        writer.writeheader()
+        writer.writerows(results)
+
+    print()
+    print("✅ Audit Finished Successfully")
+    print("CSV Saved -> output/audit.csv")
+
 
 if __name__ == "__main__":
     run_citation_audit()
