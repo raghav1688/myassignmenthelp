@@ -1,4 +1,4 @@
-raise Exception("🚨 VERSION 3 LOADED - IF YOU SEE THIS, GITHUB IS RUNNING THE NEW tracker_script.py")
+raise Exception("VERSION_3_TEST")
 import os
 import json
 import csv
